@@ -88,6 +88,7 @@ char exercise_line1[] = "MAKE XX";
 char exercise_line2[] = "WITH X,X,X,X";
 
 int target_result = -1;
+int* num_set;  // The number set array to use.
 
 // The LCD screen code is inspired by Julian Ilett:
 // https://www.youtube.com/watch?v=RAlZ1DHw03g
@@ -135,12 +136,15 @@ void LcdWriteCmd(byte cmd)
 }
 
 void newExercise() {
-  int num_set = random(NUM_SETS);
-  int result_index = random(results_count[num_set] - 1);
-  target_result = results[num_set][result_index];
+  int num_set_index = random(NUM_SETS);
+  int result_index = random(results_count[num_set_index] - 1);
+  
+  target_result = results[num_set_index][result_index];
+  num_set = nums_sets[num_set_index];
+  
   String(target_result).toCharArray(exercise_line1 + 5, 3);
   for (int i = 0; i < N; i++) {
-    exercise_line2[5 + 2 * i] = '0' + nums_sets[num_set][i];
+    exercise_line2[5 + 2 * i] = '0' + num_set[i];
   }
 }
 
@@ -197,23 +201,107 @@ void turnLEDs(int value) {
   digitalWrite(WIN_LED2, value);
 }
 
-int countDigits(char* user_expression) {
+bool isDigit(char c) {
+  return c >= '0' && c <= '9';
+}
+
+bool isOperation(char c) {
+  return c == '+' || c == '-' || c == '*' || c == '/';
+}
+
+int stringLength(char* str) {
+	int count = 0;
+	while (*str++) count++;
+	return count;
+}
+
+int countChar(char* str, char c) {
   int count = 0;
-  char* p = user_expression;
-  while (p) {
-    if (*p > '0' && *p <= '9') {
-      count++;
-    }
-    p++;
+  while (*str) {
+    count += *str == c;
+    str++;
   }
   return count;
 }
 
-// int indexOf( ANIS
+int indexOfChar(char* str, char c) {
+  int index = 0;
+  while (*str) {
+    if (*str == c) {
+      return index;
+    }
+    index++;
+    str++;
+  }
+  return -1;
+}
 
-boolean isValidExpression(char* user_expression) {
-  // Check if all the numbers are used exactly once.
-  for (int i = 0; i < N; i
+void removeChar(char* str, char c) {
+  char *p = str, *q = str;
+  while (*q) {
+	while (*q == c) {
+	  q++;
+	}
+    *p = *q;
+	p++;
+	q++;
+  }
+  *p = 0;
+}
+
+void copyString(char* src, char* dst) {
+	while(*dst++ = *src++);
+}
+
+bool isValidExpression(char* user_expression, int expected_numbers[N]) {
+	// 1. Copy the user expression to a string which we can manipulate.
+	char expression_copy[50];
+	copyString(user_expression, expression_copy);
+
+	// 2. Remove all spaces.
+	removeChar(expression_copy, ' ');
+
+	// 3. Locate left and right parentheses. And check that they are in valid order.
+	int left_p = indexOfChar(expression_copy, '(');
+	int right_p = indexOfChar(expression_copy, ')');
+	if ((left_p != -1 && right_p == -1) || (left_p == -1 && right_p != -1)) {
+		return false;  // Only one parenthesis appears and the other one is missing.
+	}
+	if (left_p != -1 && right_p != -1) {  // Both parentheses appear.
+		if (left_p >= right_p) {
+			return false;  // Right before left.
+		}
+		// There are only 4 different possible locations for each parenthesis.
+		if ((left_p != 0 && left_p != 2 && left_p != 4) ||
+				(right_p != 4 && right_p != 6 && right_p != 8)) {
+			return false;
+		}
+	}
+
+	// 4. Remove parentheses, to ease the coming validations.
+	removeChar(expression_copy, '(');
+	removeChar(expression_copy, ')');
+
+	// 5. Verify that there are 3 operations and 4 numbers, in the right order.
+	if (stringLength(expression_copy) != 2 * N - 1) {
+		return false;
+	}
+	for (int i = 0; i < 2 * N - 1; i++) {
+		if ((i % 2 == 0 && !isDigit(expression_copy[i])) ||
+				(i % 2 == 1 && !isOperation(expression_copy[i]))) {
+			return false;
+		}
+	}
+
+	// 6. Check that the right set of numbers appear.
+	for (int i = 0; i < N; i++) {
+		if (indexOfChar(expression_copy, expected_numbers[i] + '0') == -1) {
+			return false;
+		}
+	}
+
+	// 7. We found nothing wrong.
+	return true;
 }
 
 void loop()
@@ -236,7 +324,7 @@ void loop()
 
   // Check if the user expression is valid (correct numbers, and matching parentheses).
   // If it's valid, evaluate the user expression and see if it evaluates to the correct result.
-  if (isValidExpression(expression) && abs(getExpressionValue(expression) - target_result) < EPSILON)) {
+  if (isValidExpression(expression, num_set) && abs(getExpressionValue(expression) - target_result) < EPSILON) {
     turnLEDs(ON);
   } else {
     turnLEDs(OFF);
