@@ -239,23 +239,23 @@ int indexOfChar(char* str, char c) {
 void removeChar(char* str, char c) {
   char *p = str, *q = str;
   while (*q) {
-	while (*q == c) {
-	  q++;
-	}
+    while (*q == c) {
+      q++;
+    }
     *p = *q;
-	p++;
-	q++;
+    p++;
+    q++;
   }
   *p = 0;
 }
 
 void copyString(char* src, char* dst) {
-	while(*dst++ = *src++);
+  while(*dst++ = *src++);
 }
 
 bool isValidExpression(char* user_expression, int expected_numbers[N]) {
 	// 1. Copy the user expression to a string which we can manipulate.
-	char expression_copy[50];
+	char expression_copy[BOARD_LENGTH + 1];
 	copyString(user_expression, expression_copy);
 
 	// 2. Remove all spaces.
@@ -318,7 +318,7 @@ void loop()
       expression_changed = true;
     }
   }
-  if (expression_changed) { 
+  if (expression_changed) {
     LcdWriteStrings();
   }
 
