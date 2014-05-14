@@ -22,8 +22,8 @@
 
 #define NEW_EXERCISE_BUTTON 4
 boolean new_exercise_pressed = false;
-#define WIN_LED1 10
-#define WIN_LED2 12
+#define WIN_LED 10
+#define WIN_BUZZER A0
 
 #define N 4  // How many numbers are used in each exercise.
 #define NUM_SETS 15
@@ -92,6 +92,8 @@ char exercise_line2[] = "WITH X,X,X,X";
 
 int target_result = -1;
 int* num_set;  // The number set array to use.
+
+bool won = false;
 
 // The LCD screen code is inspired by Julian Ilett:
 // https://www.youtube.com/watch?v=RAlZ1DHw03g
@@ -198,9 +200,19 @@ int binaryToInteger(int a[]) {
   return result;
 }
 
-void turnLEDs(int value) {
-  digitalWrite(WIN_LED1, value);
-  digitalWrite(WIN_LED2, value);
+void win() {
+  digitalWrite(WIN_LED, 1);
+  for (int i = 0; i < 6; i++) {
+    analogWrite(WIN_BUZZER, 1023);
+    delay(200);
+    analogWrite(WIN_BUZZER, 0);
+    delay(200);
+  }
+}
+
+void turnLEDsOff() {
+  digitalWrite(WIN_LED, 0);
+  analogWrite(WIN_BUZZER, 0);
 }
 
 bool isDigit(char c) {
@@ -333,11 +345,15 @@ void loop()
   // Check if the user expression is valid (correct numbers, and matching parentheses).
   // If it's valid, evaluate the user expression and see if it evaluates to the correct result. 
   if (isValidExpression(expression_copy, num_set) && abs(getExpressionValue(expression_copy) - target_result) < EPSILON) {
-    turnLEDs(ON);
-    LcdWriteStringAt("Great job!", 20, 1); 
-    LcdWriteStringAt("Press Button", 10, 2);
+    if (!won) {
+      win();
+      won = true;
+      LcdWriteStringAt("Great job!", 20, 1); 
+      LcdWriteStringAt("Press Button", 10, 2);
+    }
   } else {
-    turnLEDs(OFF);
+    won = false;
+    turnLEDsOff();
   }
   
   // Check if the "new exercise" button was pressed. If so, initialize a new game.
