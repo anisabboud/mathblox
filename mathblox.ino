@@ -322,14 +322,22 @@ void loop()
     LcdWriteStrings();
   }
 
+  // Remove Spaces from expression
+  removeChar(expression, ' '); 
+
   // Check if the user expression is valid (correct numbers, and matching parentheses).
-  // If it's valid, evaluate the user expression and see if it evaluates to the correct result.
+  // If it's valid, evaluate the user expression and see if it evaluates to the correct result. 
   if (isValidExpression(expression, num_set) && abs(getExpressionValue(expression) - target_result) < EPSILON) {
+        Serial.println("SUCCESS!!!");
     turnLEDs(ON);
+    LcdWriteStringAt("Great job!", 20, 1);
+    LcdWriteStringAt("Restart in 5 seconds", 5, 2);
+    delay(7000);
+    newExercise();
   } else {
     turnLEDs(OFF);
   }
-  
+  //delay(500);
   
   // Check if the "new exercise" button was pressed. If so, initialize a new game.
   boolean now_pressed = !digitalRead(NEW_EXERCISE_BUTTON);
