@@ -34,7 +34,7 @@ for left_parenthesis, right_parenthesis in combinations(range(N), 2):
             result = None
             try:
                 float_expression = ''.join([item + '.0' if item.isdigit() else item for item in final_expression])
-                result = int(eval(float_expression))
+                result = float(eval(float_expression))
             except ZeroDivisionError:
                 continue
             if abs(result - round(result)) > EPSILON or result <= 0:
@@ -45,27 +45,30 @@ for left_parenthesis, right_parenthesis in combinations(range(N), 2):
             sorted_nums = tuple(sorted([int(i) for i in nums]))
             if sorted_nums not in all_quizzes:
                 all_quizzes[sorted_nums] = set()
-            all_quizzes[sorted_nums].add(result)
+            all_quizzes[sorted_nums].add(round(result))
+
+            #if sorted_nums == (2, 3, 4, 5) and result == 18:
+            #    print(final_expression)
 
 # for nums, result_set in sorted(all_quizzes.items()):
 #     print nums, sorted(result_set)
 # print
 
 number_of_number_sets = len(all_quizzes)
-print '#define N %d  // How many numbers are used in each exercise.' % N
-print '#define NUM_SETS %d\n' % number_of_number_sets
-print 'int nums_sets[NUM_SETS][N] = {'
+print('#define N %d  // How many numbers are used in each exercise.' % N)
+print('#define NUM_SETS %d\n' % number_of_number_sets)
+print('int nums_sets[NUM_SETS][N] = {')
 for nums_set in sorted(all_quizzes):
-    print '\t{%s},' % (', '.join([str(i) for i in nums_set]))
-print '};'
+    print('\t{%s},' % (', '.join([str(i) for i in nums_set])))
+print('};')
 
-print 'int results[NUM_SETS][%d] = {' % max([len(result_set) for result_set in all_quizzes.values()])
+print('int results[NUM_SETS][%d] = {' % max([len(result_set) for result_set in all_quizzes.values()]))
 for nums_set, result_set in sorted(all_quizzes.items()):
-    print '\t{%s},' % (', '.join([str(i) for i in result_set]))
-print '};'
+    print ('\t{%s},' % (', '.join([str(i) for i in result_set])))
+print ('};')
 
 
-print 'int results_count[NUM_SETS] = {'
+print('int results_count[NUM_SETS] = {')
 for nums_set, result_set in sorted(all_quizzes.items()):
-    print '\t%d,' % len(result_set)
-print '};'
+    print('\t%d,' % len(result_set))
+print('};')
