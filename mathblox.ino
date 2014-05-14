@@ -308,6 +308,8 @@ bool isValidExpression(char* user_expression, int expected_numbers[N]) {
 
 void loop()
 {
+  char expression_copy[BOARD_LENGTH + 1];
+  
   // Read the user expression.
   boolean expression_changed = false;
   for (int cell = 0; cell < BOARD_LENGTH; cell++) {
@@ -318,7 +320,6 @@ void loop()
     if (expression[cell] != CHARACTERS[binaryToInteger(binary_digits)]) {
       expression[cell] = CHARACTERS[binaryToInteger(binary_digits)];
       expression_changed = true;
-      Serial.println(cell);
     }
   }
   if (expression_changed) {
@@ -326,11 +327,12 @@ void loop()
   }
 
   // Remove Spaces from expression
-  removeChar(expression, ' '); 
+  copyString(expression, expression_copy);
+  removeChar(expression_copy, ' '); 
 
   // Check if the user expression is valid (correct numbers, and matching parentheses).
   // If it's valid, evaluate the user expression and see if it evaluates to the correct result. 
-  if (isValidExpression(expression, num_set) && abs(getExpressionValue(expression) - target_result) < EPSILON) {
+  if (isValidExpression(expression_copy, num_set) && abs(getExpressionValue(expression_copy) - target_result) < EPSILON) {
     turnLEDs(ON);
     LcdWriteStringAt("Great job!", 20, 1); 
     LcdWriteStringAt("Press Button", 10, 2);
